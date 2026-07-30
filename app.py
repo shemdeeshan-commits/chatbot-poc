@@ -2,6 +2,7 @@ import streamlit as st
 from google import genai
 from google.genai import types
 import PIL.Image
+import os  # Added this to safely check for files
 
 # 1. Securely load the API key from Streamlit Secrets
 API_KEY = st.secrets["GEMINI_API_KEY"] 
@@ -30,18 +31,16 @@ Operational Rules for AI:
 client = genai.Client(api_key=API_KEY)
 
 # 4. Branded Streamlit Website Setup
-# Updates the browser tab title and icon
 st.set_page_config(page_title="Shem Silva Technologies AI", page_icon="💼", layout="centered")
 
-# Creates a side-by-side layout for the logo and title
 col1, col2 = st.columns([1, 4])
 
 with col1:
-    # Attempts to load the logo you uploaded to GitHub
-    try:
+    # Safely checks if the file exists before trying to load it
+    if os.path.exists("logo.png"):
         st.image("logo.png", width=85)
-    except FileNotFoundError:
-        st.write(" ") # Prevents an error if the logo file is missing or named incorrectly
+    else:
+        st.write(" ") # Leaves a blank space if the logo is missing
 
 with col2:
     st.title("Shem Silva Technologies")
