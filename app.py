@@ -80,9 +80,9 @@ if prompt := st.chat_input("How can we help optimize your business today?"):
         message_placeholder = st.empty()
         
         try:
-            # FIXED: Changed model to the universally available gemini-1.5-flash
+            # FIXED: Updated to the correct and active gemini-2.5-flash model
             response = client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.5-flash",
                 contents=api_contents,
                 config=types.GenerateContentConfig(
                     system_instruction=COMPANY_KNOWLEDGE,
@@ -93,5 +93,4 @@ if prompt := st.chat_input("How can we help optimize your business today?"):
             st.session_state.messages.append({"role": "assistant", "content": response.text})
             
         except Exception as e:
-            # FIXED: Will now print the exact error from Google instead of a generic message
             st.error(f"System Error: {e}")
