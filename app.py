@@ -6,44 +6,63 @@ import PIL.Image
 # 1. Securely load the API key from Streamlit Secrets
 API_KEY = st.secrets["GEMINI_API_KEY"] 
 
-# 2. Add your company details here
+# 2. Shem Silva Technologies Knowledge Base
 COMPANY_KNOWLEDGE = """
-Company Name: Your Company Name
+Company Name: Shem Silva Technologies
+Website: https://www.shemsilvatech.com/
 Core Capabilities: 
-- We provide corporate AI solutions.
-- Data analysis and custom integrations.
+- Corporate IT solutions and business management systems.
+- Digital content strategy and brand asset coordination.
+- Custom software and AI integration.
 
 Quotation & Budget Guidelines:
-- Standard Package starts at $500.
-- Custom requirements evaluated per project.
+- Custom requirements are evaluated on a per-project basis to ensure scalable business management.
+- Budget adjustments and flexible quoting are available upon direct consultation.
 
 Operational Rules for AI:
-- You are a helpful assistant for this company.
+- You are a professional, corporate AI assistant for Shem Silva Technologies.
 - If a user uploads an image/document, analyze it to determine if our capabilities can fulfill their requirements.
-- Provide estimated quotations based ONLY on the guidelines above.
+- Provide professional insights based ONLY on the guidelines above.
 - If a request falls outside these guidelines, state that human consultation is required.
 """
 
 # 3. Initialize the AI Client
 client = genai.Client(api_key=API_KEY)
 
-# 4. Streamlit Website Setup
-st.set_page_config(page_title="Company AI Assistant", page_icon="🤖", layout="centered")
-st.title("🤖 Company AI Assistant & Quoting Engine")
-st.markdown("Ask questions about our services, or upload your requirements/images for a quick capability analysis.")
+# 4. Branded Streamlit Website Setup
+# Updates the browser tab title and icon
+st.set_page_config(page_title="Shem Silva Technologies AI", page_icon="💼", layout="centered")
 
+# Creates a side-by-side layout for the logo and title
+col1, col2 = st.columns([1, 4])
+
+with col1:
+    # Attempts to load the logo you uploaded to GitHub
+    try:
+        st.image("logo.png", width=85)
+    except FileNotFoundError:
+        st.write(" ") # Prevents an error if the logo file is missing or named incorrectly
+
+with col2:
+    st.title("Shem Silva Technologies")
+
+st.markdown("### Corporate AI Assistant & Quoting Engine")
+st.markdown("Ask questions about our capabilities, or upload your project requirements for a quick analysis.")
+st.divider()
+
+# 5. Session State for Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 5. Multimodal File Uploader
+# 6. Multimodal File Uploader
 uploaded_file = st.file_uploader("Upload an image or requirement document (JPG, PNG)", type=["jpg", "jpeg", "png"])
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# 6. Chat Logic
-if prompt := st.chat_input("How can we help you today?"):
+# 7. Chat Logic
+if prompt := st.chat_input("How can we help optimize your business today?"):
     
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -55,7 +74,7 @@ if prompt := st.chat_input("How can we help you today?"):
         try:
             image = PIL.Image.open(uploaded_file)
             api_contents.append(image)
-            st.toast("Image attached!", icon="✅")
+            st.toast("Requirement document attached!", icon="✅")
         except Exception as e:
             st.error("Error processing image.")
 
