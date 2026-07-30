@@ -80,9 +80,9 @@ if prompt := st.chat_input("How can we help optimize your business today?"):
         message_placeholder = st.empty()
         
         try:
-            # FIXED: Updated to the newest supported model version
+            # FIXED: Updated to the correct and active gemini-3.6-flash model
             response = client.models.generate_content(
-                model="gemini-3.0-flash",
+                model="gemini-3.6-flash",
                 contents=api_contents,
                 config=types.GenerateContentConfig(
                     system_instruction=COMPANY_KNOWLEDGE,
