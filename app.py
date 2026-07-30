@@ -2,7 +2,7 @@ import streamlit as st
 from google import genai
 from google.genai import types
 import PIL.Image
-import os  # Added this to safely check for files
+import os
 
 # 1. Securely load the API key from Streamlit Secrets
 API_KEY = st.secrets["GEMINI_API_KEY"] 
@@ -36,11 +36,10 @@ st.set_page_config(page_title="Shem Silva Technologies AI", page_icon="💼", la
 col1, col2 = st.columns([1, 4])
 
 with col1:
-    # Safely checks if the file exists before trying to load it
     if os.path.exists("logo.png"):
         st.image("logo.png", width=85)
     else:
-        st.write(" ") # Leaves a blank space if the logo is missing
+        st.write(" ")
 
 with col2:
     st.title("Shem Silva Technologies")
@@ -75,14 +74,15 @@ if prompt := st.chat_input("How can we help optimize your business today?"):
             api_contents.append(image)
             st.toast("Requirement document attached!", icon="✅")
         except Exception as e:
-            st.error("Error processing image.")
+            st.error(f"Error processing image: {e}")
 
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         
         try:
+            # FIXED: Changed model to the universally available gemini-1.5-flash
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 contents=api_contents,
                 config=types.GenerateContentConfig(
                     system_instruction=COMPANY_KNOWLEDGE,
@@ -93,4 +93,5 @@ if prompt := st.chat_input("How can we help optimize your business today?"):
             st.session_state.messages.append({"role": "assistant", "content": response.text})
             
         except Exception as e:
-            st.error("Please check your API key and try again.")
+            # FIXED: Will now print the exact error from Google instead of a generic message
+            st.error(f"System Error: {e}")
