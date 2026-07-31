@@ -7,30 +7,36 @@ import os
 # 1. Securely load the API key from Streamlit Secrets
 API_KEY = st.secrets["GEMINI_API_KEY"] 
 
-# 2. Shem Silva Technologies Knowledge Base
+# 2. Shem Silva Technologies Core Rules
+# We removed the hard-coded prices here because the AI will now read them from your CSV.
 COMPANY_KNOWLEDGE = """
 Company Name: Shem Silva Technologies
 Website: https://www.shemsilvatech.com/
-Core Capabilities: 
-- Corporate IT solutions and business management systems.
-- Digital content strategy and brand asset coordination.
-- Custom software and AI integration.
-
-Quotation & Budget Guidelines:
-- Custom requirements are evaluated on a per-project basis to ensure scalable business management.
-- Budget adjustments and flexible quoting are available upon direct consultation.
 
 Operational Rules for AI:
-- You are a professional, corporate AI assistant for Shem Silva Technologies.
-- If a user uploads an image/document, analyze it to determine if our capabilities can fulfill their requirements.
-- Provide professional insights based ONLY on the guidelines above.
-- If a request falls outside these guidelines, state that human consultation is required.
+- You are a professional, corporate AI assistant and quoting engine for Shem Silva Technologies.
+- Always refer to the 'Pricing & Services Database' provided below to answer questions about capabilities and quotes.
+- If a user uploads an image/document, analyze it to determine if our capabilities can fulfill their requirements based on the database.
+- Provide professional insights based ONLY on the provided database.
+- If a request falls outside these guidelines or the database, state that human consultation is required.
 """
 
-# 3. Initialize the AI Client
+# 3. Dynamic Database Loader (Reads your Excel/CSV file)
+csv_database = ""
+if os.path.exists("pricing.csv"):
+    try:
+        with open("pricing.csv", "r", encoding="utf-8") as file:
+            csv_database = file.read()
+    except Exception as e:
+        pass # If the file has an error, it will just skip reading it safely
+
+# Combine the rules with your actual Excel data
+FULL_SYSTEM_PROMPT = COMPANY_KNOWLEDGE + "\n\n### Pricing & Services Database ###\n" + csv_database
+
+# 4. Initialize the AI Client
 client = genai.Client(api_key=API_KEY)
 
-# 4. Branded Streamlit Website Setup
+# 5. Branded Streamlit Website Setup
 st.set_page_config(page_title="Shem Silva Technologies AI", page_icon="💼", layout="centered")
 
 col1, col2 = st.columns([1, 4])
@@ -48,18 +54,18 @@ st.markdown("### Corporate AI Assistant & Quoting Engine")
 st.markdown("Ask questions about our capabilities, or upload your project requirements for a quick analysis.")
 st.divider()
 
-# 5. Session State for Chat History
+# 6. Session State for Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 6. Multimodal File Uploader
+# 7. Multimodal File Uploader
 uploaded_file = st.file_uploader("Upload an image or requirement document (JPG, PNG)", type=["jpg", "jpeg", "png"])
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# 7. Chat Logic
+# 8. Chat Logic
 if prompt := st.chat_input("How can we help optimize your business today?"):
     
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -80,12 +86,12 @@ if prompt := st.chat_input("How can we help optimize your business today?"):
         message_placeholder = st.empty()
         
         try:
-            # FIXED: Updated to the correct and active gemini-3.6-flash model
+            # The AI now uses FULL_SYSTEM_PROMPT which contains your CSV data
             response = client.models.generate_content(
                 model="gemini-3.6-flash",
                 contents=api_contents,
                 config=types.GenerateContentConfig(
-                    system_instruction=COMPANY_KNOWLEDGE,
+                    system_instruction=FULL_SYSTEM_PROMPT,
                     temperature=0.2 
                 )
             )
