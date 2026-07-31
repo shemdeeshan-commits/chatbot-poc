@@ -20,17 +20,16 @@ Operational Rules for AI:
 - If a request falls outside these guidelines or the database, state that human consultation is required.
 """
 
-# 3. Dynamic Database Loader (Now with Error Tracking)
+# 3. Dynamic Database Loader (Now with Excel Character Fix)
 csv_database = ""
 if os.path.exists("pricing.csv"):
     try:
-        with open("pricing.csv", "r", encoding="utf-8") as file:
+        # FIXED: errors="replace" forces the system to ignore weird Excel formatting and read the file
+        with open("pricing.csv", "r", encoding="utf-8", errors="replace") as file:
             csv_database = file.read()
     except Exception as e:
-        # If it finds the file but can't read it (usually an Excel encoding issue)
         st.error(f"⚠️ I found pricing.csv, but I cannot read the text inside it. Technical Error: {e}")
 else:
-    # If the file name is slightly off or Streamlit hasn't downloaded it yet
     st.warning("⚠️ pricing.csv is missing! Please check GitHub to make sure it is uploaded and named exactly all lowercase.")
 
 FULL_SYSTEM_PROMPT = COMPANY_KNOWLEDGE + "\n\n### Pricing & Services Database ###\n" + csv_database
