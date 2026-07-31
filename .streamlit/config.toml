@@ -1,1 +1,15 @@
+[theme]
+# The exact gold/orange from the stars and 'TECHNOLOGIES' text
+primaryColor = "#F2A91D"
 
+# The deep navy blue from the background of your logo
+backgroundColor = "#1D263B"
+
+# A slightly lighter navy blue for text input boxes and chat bubbles
+secondaryBackgroundColor = "#2A3755"
+
+# Crisp white to match the 'SHEM SILVA' text and the winged icon
+textColor = "#FFFFFF"
+
+# Clean, modern font
+font = "sans serif"
