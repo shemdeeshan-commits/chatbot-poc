@@ -8,7 +8,6 @@ import os
 API_KEY = st.secrets["GEMINI_API_KEY"] 
 
 # 2. Shem Silva Technologies Core Rules
-# We removed the hard-coded prices here because the AI will now read them from your CSV.
 COMPANY_KNOWLEDGE = """
 Company Name: Shem Silva Technologies
 Website: https://www.shemsilvatech.com/
@@ -21,16 +20,19 @@ Operational Rules for AI:
 - If a request falls outside these guidelines or the database, state that human consultation is required.
 """
 
-# 3. Dynamic Database Loader (Reads your Excel/CSV file)
+# 3. Dynamic Database Loader (Now with Error Tracking)
 csv_database = ""
 if os.path.exists("pricing.csv"):
     try:
         with open("pricing.csv", "r", encoding="utf-8") as file:
             csv_database = file.read()
     except Exception as e:
-        pass # If the file has an error, it will just skip reading it safely
+        # If it finds the file but can't read it (usually an Excel encoding issue)
+        st.error(f"⚠️ I found pricing.csv, but I cannot read the text inside it. Technical Error: {e}")
+else:
+    # If the file name is slightly off or Streamlit hasn't downloaded it yet
+    st.warning("⚠️ pricing.csv is missing! Please check GitHub to make sure it is uploaded and named exactly all lowercase.")
 
-# Combine the rules with your actual Excel data
 FULL_SYSTEM_PROMPT = COMPANY_KNOWLEDGE + "\n\n### Pricing & Services Database ###\n" + csv_database
 
 # 4. Initialize the AI Client
@@ -86,7 +88,6 @@ if prompt := st.chat_input("How can we help optimize your business today?"):
         message_placeholder = st.empty()
         
         try:
-            # The AI now uses FULL_SYSTEM_PROMPT which contains your CSV data
             response = client.models.generate_content(
                 model="gemini-3.6-flash",
                 contents=api_contents,
