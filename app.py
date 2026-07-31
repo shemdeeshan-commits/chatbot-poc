@@ -13,31 +13,46 @@ Company Name: Shem Silva Technologies
 Website: https://www.shemsilvatech.com/
 
 Operational Rules for AI:
-- You are a professional, corporate AI assistant and quoting engine for Shem Silva Technologies.
-- Always refer to the 'Pricing & Services Database' provided below to answer questions about capabilities and quotes.
-- If a user uploads an image/document, analyze it to determine if our capabilities can fulfill their requirements based on the database.
-- Provide professional insights based ONLY on the provided database.
-- If a request falls outside these guidelines or the database, state that human consultation is required.
+- You are a professional, corporate AI assistant for Shem Silva Technologies.
+- Use the 'Company Background Info' to answer general questions about leadership, history, and operations.
+- Use the 'Pricing & Services Database' to answer questions about specific capabilities and quotes.
+- If a user uploads an image/document, analyze it to determine if our capabilities can fulfill their requirements.
+- If a request falls entirely outside both databases, state that human consultation is required.
 """
 
-# 3. Dynamic Database Loader (Now with Excel Character Fix)
+# 3. Load Pricing Database (CSV)
 csv_database = ""
 if os.path.exists("pricing.csv"):
     try:
-        # FIXED: errors="replace" forces the system to ignore weird Excel formatting and read the file
         with open("pricing.csv", "r", encoding="utf-8", errors="replace") as file:
             csv_database = file.read()
     except Exception as e:
-        st.error(f"⚠️ I found pricing.csv, but I cannot read the text inside it. Technical Error: {e}")
-else:
-    st.warning("⚠️ pricing.csv is missing! Please check GitHub to make sure it is uploaded and named exactly all lowercase.")
+        pass
 
-FULL_SYSTEM_PROMPT = COMPANY_KNOWLEDGE + "\n\n### Pricing & Services Database ###\n" + csv_database
+# 4. Load Company Info Database (TXT)
+company_info = ""
+if os.path.exists("company_info.txt"):
+    try:
+        with open("company_info.txt", "r", encoding="utf-8", errors="replace") as file:
+            company_info = file.read()
+    except Exception as e:
+        st.error(f"⚠️ I found company_info.txt, but cannot read it. Error: {e}")
 
-# 4. Initialize the AI Client
+# Merge everything into one giant brain for the AI
+FULL_SYSTEM_PROMPT = f"""
+{COMPANY_KNOWLEDGE}
+
+### Company Background Info ###
+{company_info}
+
+### Pricing & Services Database ###
+{csv_database}
+"""
+
+# 5. Initialize the AI Client
 client = genai.Client(api_key=API_KEY)
 
-# 5. Branded Streamlit Website Setup
+# 6. Branded Streamlit Website Setup
 st.set_page_config(page_title="Shem Silva Technologies AI", page_icon="💼", layout="centered")
 
 col1, col2 = st.columns([1, 4])
@@ -55,18 +70,18 @@ st.markdown("### Corporate AI Assistant & Quoting Engine")
 st.markdown("Ask questions about our capabilities, or upload your project requirements for a quick analysis.")
 st.divider()
 
-# 6. Session State for Chat History
+# 7. Session State for Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 7. Multimodal File Uploader
+# 8. Multimodal File Uploader
 uploaded_file = st.file_uploader("Upload an image or requirement document (JPG, PNG)", type=["jpg", "jpeg", "png"])
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# 8. Chat Logic
+# 9. Chat Logic
 if prompt := st.chat_input("How can we help optimize your business today?"):
     
     st.session_state.messages.append({"role": "user", "content": prompt})
