@@ -3,6 +3,7 @@ from google import genai
 from google.genai import types
 import PIL.Image
 import os
+import base64  # Added to process the background image
 
 # 1. Securely load the API key from Streamlit Secrets
 API_KEY = st.secrets["GEMINI_API_KEY"] 
@@ -54,6 +55,34 @@ client = genai.Client(api_key=API_KEY)
 
 # 6. Branded Streamlit Website Setup
 st.set_page_config(page_title="Shem Silva Technologies AI", page_icon="💼", layout="centered")
+
+# --- NEW: BACKGROUND IMAGE SETTINGS ---
+def set_background(image_file):
+    if os.path.exists(image_file):
+        with open(image_file, "rb") as f:
+            encoded_string = base64.b64encode(f.read()).decode()
+        
+        # Determine if it is a png or jpg
+        ext = image_file.split('.')[-1]
+        
+        st.markdown(
+            f"""
+            <style>
+            .stApp {{
+                background-image: url(data:image/{ext};base64,{encoded_string});
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+# If your image is a JPG, change "background.png" to "background.jpg" below
+set_background("background.png") 
+# --------------------------------------
 
 col1, col2 = st.columns([1, 4])
 
