@@ -67,7 +67,7 @@ client = genai.Client(api_key=API_KEY)
 # 6. Branded Streamlit Website Setup
 st.set_page_config(page_title="Shem Silva Technologies AI", page_icon="💼", layout="centered")
 
-# --- BACKGROUND IMAGE SETTINGS (FIXED INDENTATION) ---
+# --- BACKGROUND IMAGE SETTINGS ---
 def set_background(image_file):
     if os.path.exists(image_file):
         with open(image_file, "rb") as f:
@@ -86,7 +86,6 @@ def set_background(image_file):
         """
         st.markdown(css_code, unsafe_allow_html=True)
 
-# Change "background.png" to "background.jpg" if using a JPG image
 set_background("background.png")
 # ----------------------------------------------------
 
@@ -109,21 +108,31 @@ st.divider()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 8. Multimodal File Uploader
-uploaded_file = st.file_uploader("Upload an image or requirement document (JPG, PNG)", type=["jpg", "jpeg", "png"])
-
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# 9. Chat Logic
-if prompt := st.chat_input("How can we help optimize your business today?"):
+# 8. Chat Logic with Integrated File Upload
+if user_input := st.chat_input("How can we help optimize your business today?", accept_file=True, file_type=["jpg", "jpeg", "png"]):
     
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    # Streamlit now groups text and files together inside user_input
+    prompt_text = user_input.text
+    uploaded_file = user_input.files[0] if user_input.files else None
+    
+    # What to display in the chat interface
+    display_text = prompt_text if prompt_text else "*(Uploaded a document for review)*"
+    
+    st.session_state.messages.append({"role": "user", "content": display_text})
     with st.chat_message("user"):
-        st.markdown(prompt)
+        st.markdown(display_text)
 
-    api_contents = [prompt]
+    # What to send to the AI
+    api_contents = []
+    if prompt_text:
+        api_contents.append(prompt_text)
+    else:
+        # Give the AI a fallback instruction if the user only hits send on an image
+        api_contents.append("Please analyze the attached document based on our capabilities.")
     
     if uploaded_file is not None:
         try:
