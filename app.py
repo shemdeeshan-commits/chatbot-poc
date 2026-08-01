@@ -3,28 +3,34 @@ from google import genai
 from google.genai import types
 import PIL.Image
 import os
-import base64  # Added to process the background image
+import base64
 
 # 1. Securely load the API key from Streamlit Secrets
 API_KEY = st.secrets["GEMINI_API_KEY"] 
 
-# 2. Shem Silva Technologies Core Rules
+# 2. Shem Silva Technologies Core Rules & Protocols
 COMPANY_KNOWLEDGE = """
 Company Name: Shem Silva Technologies
 Website: https://www.shemsilvatech.com/
 
 Operational Rules for AI:
-- You are a professional, corporate AI consultant and quoting engine for Shem Silva Technologies.
+- You are a professional, corporate AI assistant and quoting engine for Shem Silva Technologies.
 - Use the 'Company Background Info' to answer general questions about leadership, history, and operations.
 - Use the 'Pricing & Services Database' to answer questions about specific capabilities and quotes.
 - If a request falls entirely outside both databases, state that human consultation is required.
 
-*** NEW: ACCELERATED CONSULTATION PROTOCOL ***
+*** ACCELERATED CONSULTATION PROTOCOL ***
+When a user asks for a recommendation or quote, DO NOT interrogate them. Follow this strict 2-step process:
+1. Ask a MAXIMUM of 1 or 2 highly targeted questions in a SINGLE message to narrow down their needs.
+2. The moment the user replies, IMMEDIATELY provide your best recommendation and quote from the 'Pricing & Services Database'. 
+Rule: NEVER ask a second round of follow-up questions. You must move straight to the solution and pitch after their first response, providing the closest matching service we offer.
+
 *** STRICT QUOTING & ANTI-UPSELL RULES ***
 To maintain corporate quoting accuracy, you must obey these absolute rules:
 1. EXACT MATCHING: If a user specifies a tier, product, or price point (e.g., "Premium card"), you MUST use that exact product in the final quote. Do not swap it for a different tier (e.g., "Black Edition") based on their subsequent answers.
 2. NO UNPROMPTED UPSELLING: Never add secondary products, accessories, or bundles (such as Tap Stands) to the quote unless the user explicitly asks for them. 
 3. INVOICE ACCURACY: Your final recommended solution must perfectly align with the user's initial request.
+"""
 
 # 3. Load Pricing Database (CSV)
 csv_database = ""
@@ -44,7 +50,7 @@ if os.path.exists("company_info.txt"):
     except Exception as e:
         st.error(f"⚠️ I found company_info.txt, but cannot read it. Error: {e}")
 
-# Merge everything into one giant brain for the AI
+# Merge everything into full system prompt
 FULL_SYSTEM_PROMPT = f"""
 {COMPANY_KNOWLEDGE}
 
@@ -61,33 +67,28 @@ client = genai.Client(api_key=API_KEY)
 # 6. Branded Streamlit Website Setup
 st.set_page_config(page_title="Shem Silva Technologies AI", page_icon="💼", layout="centered")
 
-# --- NEW: BACKGROUND IMAGE SETTINGS ---
+# --- BACKGROUND IMAGE SETTINGS (FIXED INDENTATION) ---
 def set_background(image_file):
     if os.path.exists(image_file):
         with open(image_file, "rb") as f:
             encoded_string = base64.b64encode(f.read()).decode()
-        
-        # Determine if it is a png or jpg
         ext = image_file.split('.')[-1]
-        
-        st.markdown(
-            f"""
-            <style>
-            .stApp {{
-                background-image: url(data:image/{ext};base64,{encoded_string});
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-                background-attachment: fixed;
-            }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+        css_code = f"""
+        <style>
+        .stApp {{
+            background-image: url(data:image/{ext};base64,{encoded_string});
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        </style>
+        """
+        st.markdown(css_code, unsafe_allow_html=True)
 
-# If your image is a JPG, change "background.png" to "background.jpg" below
-set_background("background.png") 
-# --------------------------------------
+# Change "background.png" to "background.jpg" if using a JPG image
+set_background("background.png")
+# ----------------------------------------------------
 
 col1, col2 = st.columns([1, 4])
 
