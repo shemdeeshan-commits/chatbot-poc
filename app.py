@@ -112,35 +112,45 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# 8. Chat Logic with Integrated File Upload
-if user_input := st.chat_input("How can we help optimize your business today?", accept_file=True, file_type=["jpg", "jpeg", "png"]):
+# 8. Chat Logic with Integrated Multi-File Upload
+# Added "pdf" to the accepted file types
+if user_input := st.chat_input("How can we help optimize your business today?", accept_file=True, file_type=["jpg", "jpeg", "png", "pdf"]):
     
-    # Streamlit now groups text and files together inside user_input
     prompt_text = user_input.text
     uploaded_file = user_input.files[0] if user_input.files else None
     
-    # What to display in the chat interface
     display_text = prompt_text if prompt_text else "*(Uploaded a document for review)*"
     
     st.session_state.messages.append({"role": "user", "content": display_text})
     with st.chat_message("user"):
         st.markdown(display_text)
 
-    # What to send to the AI
     api_contents = []
     if prompt_text:
         api_contents.append(prompt_text)
     else:
-        # Give the AI a fallback instruction if the user only hits send on an image
         api_contents.append("Please analyze the attached document based on our capabilities.")
     
     if uploaded_file is not None:
         try:
-            image = PIL.Image.open(uploaded_file)
-            api_contents.append(image)
-            st.toast("Requirement document attached!", icon="✅")
+            # Check if the uploaded file is a PDF
+            if uploaded_file.name.lower().endswith('.pdf'):
+                pdf_bytes = uploaded_file.read()
+                # Feed the raw PDF data directly to the Gemini AI
+                api_contents.append(
+                    types.Part.from_bytes(
+                        data=pdf_bytes,
+                        mime_type="application/pdf"
+                    )
+                )
+                st.toast("PDF document attached!", icon="✅")
+            else:
+                # Process it as an image if it is not a PDF
+                image = PIL.Image.open(uploaded_file)
+                api_contents.append(image)
+                st.toast("Image attached!", icon="✅")
         except Exception as e:
-            st.error(f"Error processing image: {e}")
+            st.error(f"Error processing file: {e}")
 
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
